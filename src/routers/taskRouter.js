@@ -41,10 +41,14 @@ router.get('/tasks', auth, async (req, res) => {
     }
 
     // Only add the limit if a value is supplied
-    if (req.query.limit) { populateOptions.options.limit = parseInt(req.query.limit, 10) }
+    if (req.query.limit) {
+        populateOptions.options.limit = parseInt(req.query.limit, 10)
+    }
 
     // Only add the skip if a value is provided
-    if (req.query.skip) { populateOptions.options.skip = parseInt(req.query.skip, 10) }
+    if (req.query.skip) {
+        populateOptions.options.skip = parseInt(req.query.skip, 10)
+    }
 
     try {
         await req.user.populate([populateOptions])
