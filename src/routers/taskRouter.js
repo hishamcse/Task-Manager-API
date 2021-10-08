@@ -24,29 +24,30 @@ router.post('/tasks', auth, async (req, res) => {
 // GET /tasks?sortBy=createdAt_asc      or     GET /tasks?sortBy=createdAt_desc
 // GET /tasks?sortBy=updatedAt_asc      or     GET /tasks?sortBy=updatedAt_desc
 router.get('/tasks', auth, async (req, res) => {
-    const match = {}
-    const sort = {}
+    const populateOptions = {
+        path: 'tasks',
+        options: {}
+    }
 
     if (req.query.completed) {
-        match.completed = req.query.completed === 'true'      // as req.query always returns a string
+        populateOptions.match = {}
+        populateOptions.match.completed = req.query.completed === 'true'      // as req.query always returns a string
     }
 
     if (req.query.sortBy) {
         const arr = req.query.sortBy.split('_')
-        sort[arr[0]] = arr[1] === 'desc' ? -1 : 1
+        populateOptions.options.sort = {}
+        populateOptions.options.sort[arr[0]] = arr[1] === 'desc' ? -1 : 1
     }
 
-    try {
-        await req.user.populate({
-            path: 'tasks',
-            match,
-            options: {
-                limit: parseInt(req.query.limit),
-                skip: parseInt(req.query.skip),
-                sort
-            }
-        })
+    // Only add the limit if a value is supplied
+    if (req.query.limit) { populateOptions.options.limit = parseInt(req.query.limit, 10) }
 
+    // Only add the skip if a value is provided
+    if (req.query.skip) { populateOptions.options.skip = parseInt(req.query.skip, 10) }
+
+    try {
+        await req.user.populate([populateOptions])
         res.send(req.user.tasks)
 
         // alternative way. but it will be manual as 'populate' method by default has some advanced features
